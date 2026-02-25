@@ -1,6 +1,7 @@
 import Resend from "@auth/core/providers/resend";
 import { ConvexCredentials } from "@convex-dev/auth/providers/ConvexCredentials";
 import { convexAuth, retrieveAccount } from "@convex-dev/auth/server";
+import { Scrypt } from "lucia";
 
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   providers: [
@@ -16,6 +17,14 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
           account: { id: username, secret: password },
         });
         return { userId: user._id };
+      },
+      crypto: {
+        async hashSecret(password: string) {
+          return await new Scrypt().hash(password);
+        },
+        async verifySecret(password: string, hash: string) {
+          return await new Scrypt().verify(hash, password);
+        },
       },
     }),
     Resend({ from: "noreply@rimskiestory.ru" }),
