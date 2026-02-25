@@ -34,9 +34,7 @@ export function LoginForm() {
     try {
       await signIn("credentials", { username, password });
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Не удалось войти",
-      );
+      setError(err instanceof Error ? err.message : "Не удалось войти");
     } finally {
       setIsLoading(false);
     }
@@ -65,8 +63,7 @@ export function LoginForm() {
         <CardHeader>
           <CardTitle>Проверьте почту</CardTitle>
           <CardDescription>
-            Мы отправили ссылку на{" "}
-            <span className="font-medium">{email}</span>
+            Мы отправили ссылку на <span className="font-medium">{email}</span>
           </CardDescription>
         </CardHeader>
         <CardContent>

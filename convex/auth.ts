@@ -27,10 +27,23 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
       }
 
       if (args.type === "credentials") {
+        const role = (args.profile.role as string) || "user";
+
+        if (role === "admin") {
+          const existingAdmin = await ctx.db
+            .query("users")
+            .filter((q) => q.eq(q.field("role"), "admin"))
+            .first();
+
+          if (existingAdmin) {
+            throw new Error("Администратор уже создан");
+          }
+        }
+
         return await ctx.db.insert("users", {
           name: args.profile.name as string,
           email: args.profile.email,
-          role: (args.profile.role as string) || "user",
+          role: role,
         });
       }
 

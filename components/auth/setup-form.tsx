@@ -54,7 +54,9 @@ export function SetupForm() {
       });
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Не удалось создать администратора",
+        err instanceof Error
+          ? err.message
+          : "Не удалось создать администратора",
       );
     } finally {
       setIsLoading(false);
