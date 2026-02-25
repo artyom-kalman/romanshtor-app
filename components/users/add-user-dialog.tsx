@@ -39,11 +39,18 @@ export function AddUserDialog() {
 
   function validate() {
     const newErrors: Record<string, string> = {};
-    if (!form.name.trim()) newErrors.name = "Введите имя";
-    if (!form.username.trim()) newErrors.username = "Введите имя пользователя";
-    if (!form.password.trim()) newErrors.password = "Введите пароль";
-    if (form.password.length > 0 && form.password.length < 6)
+    if (!form.name.trim()) {
+      newErrors.name = "Введите имя";
+    }
+    if (!form.username.trim()) {
+      newErrors.username = "Введите имя пользователя";
+    }
+    if (!form.password.trim()) {
+      newErrors.password = "Введите пароль";
+    }
+    if (form.password.length > 0 && form.password.length < 6) {
       newErrors.password = "Минимум 6 символов";
+    }
     return newErrors;
   }
 
