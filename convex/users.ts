@@ -13,10 +13,14 @@ export const hasUsers = query({
 export const currentUser = query({
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) return null;
+    if (!userId) {
+      return null;
+    }
 
     const user = await ctx.db.get(userId);
-    if (!user) return null;
+    if (!user) {
+      return null;
+    }
 
     const account = await ctx.db
       .query("authAccounts")
@@ -38,10 +42,14 @@ export const currentUser = query({
 export const list = query({
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
 
     const user = await ctx.db.get(userId);
-    if (user?.role !== "admin") throw new Error("Только для администраторов");
+    if (user?.role !== "admin") {
+      throw new Error("Только для администраторов");
+    }
 
     const users = await ctx.db.query("users").collect();
 
@@ -118,7 +126,9 @@ export const deleteUser = mutation({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
     const currentUserId = await getAuthUserId(ctx);
-    if (!currentUserId) throw new Error("Not authenticated");
+    if (!currentUserId) {
+      throw new Error("Not authenticated");
+    }
 
     const currentUser = await ctx.db.get(currentUserId);
     if (currentUser?.role !== "admin") {

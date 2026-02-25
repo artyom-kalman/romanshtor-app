@@ -22,7 +22,9 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   ],
   callbacks: {
     async createOrUpdateUser(ctx, args) {
-      if (args.existingUserId) return args.existingUserId;
+      if (args.existingUserId) {
+        return args.existingUserId;
+      }
 
       if (args.type === "credentials") {
         return await ctx.db.insert("users", {
@@ -38,7 +40,9 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
           .query("users")
           .filter((q) => q.eq(q.field("email"), email))
           .first();
-        if (existingUser) return existingUser._id;
+        if (existingUser) {
+          return existingUser._id;
+        }
       }
 
       throw new Error("Пользователь не зарегистрирован");
