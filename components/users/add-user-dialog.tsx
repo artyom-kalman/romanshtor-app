@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,21 +18,19 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
 const initialForm = {
-  lastName: "",
-  firstName: "",
-  patronymic: "",
-  phone: "",
+  username: "",
+  password: "",
+  name: "",
+  role: "user" as "admin" | "user",
   email: "",
-  address: "",
-  notes: "",
 };
 
-export function AddClientDialog() {
+export function AddUserDialog() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const create = useMutation(api.clients.create);
+  const createUser = useAction(api.users.createUser);
 
   function handleChange(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -41,9 +39,11 @@ export function AddClientDialog() {
 
   function validate() {
     const newErrors: Record<string, string> = {};
-    if (!form.lastName.trim()) newErrors.lastName = "Введите фамилию";
-    if (!form.firstName.trim()) newErrors.firstName = "Введите имя";
-    if (!form.phone.trim()) newErrors.phone = "Введите телефон";
+    if (!form.name.trim()) newErrors.name = "Введите имя";
+    if (!form.username.trim()) newErrors.username = "Введите имя пользователя";
+    if (!form.password.trim()) newErrors.password = "Введите пароль";
+    if (form.password.length > 0 && form.password.length < 6)
+      newErrors.password = "Минимум 6 символов";
     return newErrors;
   }
 
@@ -57,19 +57,17 @@ export function AddClientDialog() {
 
     setLoading(true);
     try {
-      await create({
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        patronymic: form.patronymic.trim() || undefined,
-        phone: form.phone.trim(),
+      await createUser({
+        username: form.username.trim(),
+        password: form.password,
+        name: form.name.trim(),
+        role: form.role,
         email: form.email.trim() || undefined,
-        address: form.address.trim() || undefined,
-        notes: form.notes.trim() || undefined,
       });
       setOpen(false);
-      toast.success("Клиент добавлен");
+      toast.success("Пользователь создан");
     } catch {
-      toast.error("Не удалось добавить клиента");
+      toast.error("Не удалось создать пользователя");
     } finally {
       setLoading(false);
     }
@@ -88,60 +86,70 @@ export function AddClientDialog() {
       <DialogTrigger asChild>
         <Button>
           <Plus />
-          Добавить клиента
+          Добавить пользователя
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Новый клиент</DialogTitle>
+          <DialogTitle>Новый пользователь</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <Field
-            label="Фамилия"
+            label="Отображаемое имя"
             required
-            value={form.lastName}
-            onChange={(v) => handleChange("lastName", v)}
-            error={errors.lastName}
+            value={form.name}
+            onChange={(v) => handleChange("name", v)}
+            error={errors.name}
           />
           <Field
-            label="Имя"
+            label="Имя пользователя"
             required
-            value={form.firstName}
-            onChange={(v) => handleChange("firstName", v)}
-            error={errors.firstName}
+            value={form.username}
+            onChange={(v) => handleChange("username", v)}
+            error={errors.username}
           />
           <Field
-            label="Отчество"
-            value={form.patronymic}
-            onChange={(v) => handleChange("patronymic", v)}
-          />
-          <Field
-            label="Телефон"
+            label="Пароль"
             required
-            type="tel"
-            value={form.phone}
-            onChange={(v) => handleChange("phone", v)}
-            error={errors.phone}
+            type="password"
+            value={form.password}
+            onChange={(v) => handleChange("password", v)}
+            error={errors.password}
           />
+          <div className="flex flex-col gap-1.5">
+            <Label>Роль</Label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name="role"
+                  value="user"
+                  checked={form.role === "user"}
+                  onChange={(e) => handleChange("role", e.target.value)}
+                />
+                Пользователь
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name="role"
+                  value="admin"
+                  checked={form.role === "admin"}
+                  onChange={(e) => handleChange("role", e.target.value)}
+                />
+                Администратор
+              </label>
+            </div>
+          </div>
           <Field
-            label="Email"
+            label="Email (необязательно)"
             type="email"
             value={form.email}
             onChange={(v) => handleChange("email", v)}
           />
-          <Field
-            label="Адрес"
-            value={form.address}
-            onChange={(v) => handleChange("address", v)}
-          />
-          <Field
-            label="Заметки"
-            value={form.notes}
-            onChange={(v) => handleChange("notes", v)}
-          />
           <DialogFooter>
             <Button type="submit" disabled={loading}>
-              {loading ? "Сохранение..." : "Сохранить"}
+              {loading ? "Создание..." : "Создать"}
             </Button>
           </DialogFooter>
         </form>

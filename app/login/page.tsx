@@ -1,13 +1,17 @@
 "use client";
 
 import { LoginForm } from "@/components/auth/login-form";
+import { SetupForm } from "@/components/auth/setup-form";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function LoginPage() {
   const { isLoading, isAuthenticated } = useAuth();
+  const hasUsers = useQuery(api.users.hasUsers);
   const router = useRouter();
 
   useEffect(() => {
@@ -16,7 +20,7 @@ export default function LoginPage() {
     }
   }, [isLoading, isAuthenticated, router]);
 
-  if (isLoading) {
+  if (isLoading || hasUsers === undefined) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Spinner />
@@ -30,7 +34,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <LoginForm />
+      {hasUsers ? <LoginForm /> : <SetupForm />}
     </div>
   );
 }
