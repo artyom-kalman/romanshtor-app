@@ -1,11 +1,14 @@
 import { useMutation, useAction } from "convex/react";
 import { toast } from "sonner";
+import { FunctionReference, OptionalRestArgs, FunctionReturnType } from "convex/server";
 
-export function useServerMutation(...args: Parameters<typeof useMutation>) {
-  const mutation = useMutation(...args);
-  return async (...mutationArgs: Parameters<typeof mutation>) => {
+export function useServerMutation<M extends FunctionReference<"mutation">>(
+  mutation: M,
+) {
+  const mutationFn = useMutation(mutation);
+  return async (...args: OptionalRestArgs<M>): Promise<FunctionReturnType<M>> => {
     try {
-      return await mutation(...mutationArgs);
+      return await mutationFn(...args);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Произошла ошибка");
       throw error;
@@ -13,11 +16,13 @@ export function useServerMutation(...args: Parameters<typeof useMutation>) {
   };
 }
 
-export function useServerAction(...args: Parameters<typeof useAction>) {
-  const action = useAction(...args);
-  return async (...actionArgs: Parameters<typeof action>) => {
+export function useServerAction<A extends FunctionReference<"action">>(
+  action: A,
+) {
+  const actionFn = useAction(action);
+  return async (...args: OptionalRestArgs<A>): Promise<FunctionReturnType<A>> => {
     try {
-      return await action(...actionArgs);
+      return await actionFn(...args);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Произошла ошибка");
       throw error;
