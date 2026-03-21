@@ -5,17 +5,23 @@ import { api } from "@/convex/_generated/api";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Trash2, Shield, User } from "lucide-react";
+import { Users, Trash2, Shield, User, Pencil } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import { useState } from "react";
 import { useServerMutation } from "@/hooks/use-server-mutation";
+import { EditUserDialog } from "./edit-user-dialog";
 
 export function UserList() {
   const users = useQuery(api.users.list);
   const deleteUser = useServerMutation(api.users.deleteUser);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [editUser, setEditUser] = useState<{
+    _id: Id<"users">;
+    role?: string;
+    username?: string;
+  } | null>(null);
 
   if (users === undefined) {
     return (
@@ -85,20 +91,42 @@ export function UserList() {
                   </Button>
                 </div>
               ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground"
-                  onClick={() => setConfirmId(user._id)}
-                >
-                  <Trash2 className="size-4" />
-                  Удалить
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground"
+                    onClick={() => setEditUser(user)}
+                  >
+                    <Pencil className="size-4" />
+                    Изменить
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground"
+                    onClick={() => setConfirmId(user._id)}
+                  >
+                    <Trash2 className="size-4" />
+                    Удалить
+                  </Button>
+                </div>
               )}
             </div>
           </CardContent>
         </Card>
       ))}
+      {editUser && (
+        <EditUserDialog
+          user={editUser}
+          open={!!editUser}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditUser(null);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

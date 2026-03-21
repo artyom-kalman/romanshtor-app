@@ -1,6 +1,10 @@
 import { v } from "convex/values";
 import { query, mutation, action } from "./_generated/server";
-import { getAuthUserId, createAccount } from "@convex-dev/auth/server";
+import {
+  getAuthUserId,
+  createAccount,
+  modifyAccountCredentials,
+} from "@convex-dev/auth/server";
 import { api } from "./_generated/api";
 
 export const hasUsers = query({
@@ -153,5 +157,99 @@ export const deleteUser = mutation({
     }
 
     await ctx.db.delete(args.userId);
+  },
+});
+
+export const updatePassword = action({
+  args: {
+    userId: v.id("users"),
+    newPassword: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const currentUser = await ctx.runQuery(api.users.currentUser);
+    if (currentUser?.role !== "admin") {
+      throw new Error("Только для администраторов");
+    }
+
+    const account = await ctx.runQuery(api.users.getAccountByUserId, {
+      userId: args.userId,
+    });
+    if (!account) {
+      throw new Error("Аккаунт не найден");
+    }
+
+    await modifyAccountCredentials(ctx, {
+      provider: "credentials",
+      account: { id: account.providerAccountId, secret: args.newPassword },
+    });
+  },
+});
+
+export const getAccountByUserId = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+    const user = await ctx.db.get(userId);
+    if (user?.role !== "admin") {
+      throw new Error("Только для администраторов");
+    }
+
+    const account = await ctx.db
+      .query("authAccounts")
+      .withIndex("userIdAndProvider", (q) =>
+        q.eq("userId", args.userId).eq("provider", "credentials"),
+      )
+      .first();
+
+    if (!account) {
+      return null;
+    }
+    return { providerAccountId: account.providerAccountId };
+  },
+});
+
+export const updateUsername = mutation({
+  args: {
+    userId: v.id("users"),
+    newUsername: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const currentUserId = await getAuthUserId(ctx);
+    if (!currentUserId) {
+      throw new Error("Not authenticated");
+    }
+    const currentUser = await ctx.db.get(currentUserId);
+    if (currentUser?.role !== "admin") {
+      throw new Error("Только для администраторов");
+    }
+
+    const existing = await ctx.db
+      .query("authAccounts")
+      .withIndex("providerAndAccountId", (q) =>
+        q
+          .eq("provider", "credentials")
+          .eq("providerAccountId", args.newUsername),
+      )
+      .first();
+    if (existing) {
+      throw new Error("Пользователь с таким именем уже существует");
+    }
+
+    const account = await ctx.db
+      .query("authAccounts")
+      .withIndex("userIdAndProvider", (q) =>
+        q.eq("userId", args.userId).eq("provider", "credentials"),
+      )
+      .first();
+    if (!account) {
+      throw new Error("Аккаунт не найден");
+    }
+
+    await ctx.db.patch(account._id, {
+      providerAccountId: args.newUsername,
+    });
   },
 });
