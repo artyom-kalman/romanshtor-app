@@ -7,7 +7,6 @@ const { users: _users, ...otherAuthTables } = authTables;
 const schema = defineSchema({
   ...otherAuthTables,
   users: defineTable({
-    name: v.optional(v.string()),
     phone: v.optional(v.string()),
     phoneVerificationTime: v.optional(v.number()),
     image: v.optional(v.string()),

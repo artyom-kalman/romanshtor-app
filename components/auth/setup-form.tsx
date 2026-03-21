@@ -20,7 +20,6 @@ export function SetupForm() {
     username: "",
     password: "",
     confirmPassword: "",
-    name: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +49,6 @@ export function SetupForm() {
       await seed({
         username: form.username,
         password: form.password,
-        name: form.name,
       });
     } catch (err) {
       setError(
@@ -73,17 +71,6 @@ export function SetupForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="setup-name">Отображаемое имя</Label>
-            <Input
-              id="setup-name"
-              type="text"
-              value={form.name}
-              onChange={(e) => handleChange("name", e.target.value)}
-              required
-              disabled={isLoading}
-            />
-          </div>
           <div className="space-y-2">
             <Label htmlFor="setup-username">Имя пользователя</Label>
             <Input

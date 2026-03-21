@@ -48,7 +48,6 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         }
 
         return await ctx.db.insert("users", {
-          name: args.profile.name as string,
           role: role,
         });
       }

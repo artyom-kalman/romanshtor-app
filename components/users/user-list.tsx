@@ -53,7 +53,7 @@ export function UserList() {
         <Card key={user._id}>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>{user.name || "Без имени"}</span>
+              <span>{user.username}</span>
               <span className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
                 {user.role === "admin" ? (
                   <Shield className="size-3.5" />
@@ -65,9 +65,6 @@ export function UserList() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
-            {user.username && (
-              <div className="text-muted-foreground">@{user.username}</div>
-            )}
             <div className="mt-2">
               {confirmId === user._id ? (
                 <div className="flex gap-2">

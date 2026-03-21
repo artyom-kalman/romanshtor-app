@@ -20,7 +20,6 @@ import { toast } from "sonner";
 const initialForm = {
   username: "",
   password: "",
-  name: "",
   role: "user" as "admin" | "user",
 };
 
@@ -38,9 +37,6 @@ export function AddUserDialog() {
 
   function validate() {
     const newErrors: Record<string, string> = {};
-    if (!form.name.trim()) {
-      newErrors.name = "Введите имя";
-    }
     if (!form.username.trim()) {
       newErrors.username = "Введите имя пользователя";
     }
@@ -66,7 +62,6 @@ export function AddUserDialog() {
       await createUser({
         username: form.username.trim(),
         password: form.password,
-        name: form.name.trim(),
         role: form.role,
       });
       setOpen(false);
@@ -99,13 +94,6 @@ export function AddUserDialog() {
           <DialogTitle>Новый пользователь</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <Field
-            label="Отображаемое имя"
-            required
-            value={form.name}
-            onChange={(v) => handleChange("name", v)}
-            error={errors.name}
-          />
           <Field
             label="Имя пользователя"
             required

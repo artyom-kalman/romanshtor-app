@@ -31,7 +31,6 @@ export const currentUser = query({
 
     return {
       _id: user._id,
-      name: user.name,
       role: user.role,
       username: account?.providerAccountId,
     };
@@ -62,7 +61,6 @@ export const list = query({
           .first();
         return {
           _id: u._id,
-          name: u.name,
           role: u.role,
           username: account?.providerAccountId,
         };
@@ -77,7 +75,6 @@ export const seed = action({
   args: {
     username: v.string(),
     password: v.string(),
-    name: v.string(),
   },
   handler: async (ctx, args) => {
     const hasExisting = await ctx.runQuery(api.users.hasUsers);
@@ -88,7 +85,7 @@ export const seed = action({
     await createAccount(ctx, {
       provider: "credentials",
       account: { id: args.username, secret: args.password },
-      profile: { name: args.name, role: "admin" },
+      profile: { role: "admin" },
     });
   },
 });
@@ -97,7 +94,6 @@ export const createUser = action({
   args: {
     username: v.string(),
     password: v.string(),
-    name: v.string(),
     role: v.string(),
   },
   handler: async (ctx, args) => {
@@ -110,7 +106,6 @@ export const createUser = action({
       provider: "credentials",
       account: { id: args.username, secret: args.password },
       profile: {
-        name: args.name,
         role: args.role,
       },
     });
