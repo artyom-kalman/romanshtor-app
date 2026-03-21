@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAction } from "convex/react";
+import { useServerAction } from "@/hooks/use-server-mutation";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,9 +20,7 @@ import { toast } from "sonner";
 const initialForm = {
   username: "",
   password: "",
-  name: "",
   role: "user" as "admin" | "user",
-  email: "",
 };
 
 export function AddUserDialog() {
@@ -30,7 +28,7 @@ export function AddUserDialog() {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const createUser = useAction(api.users.createUser);
+  const createUser = useServerAction(api.users.createUser);
 
   function handleChange(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -39,11 +37,15 @@ export function AddUserDialog() {
 
   function validate() {
     const newErrors: Record<string, string> = {};
-    if (!form.name.trim()) newErrors.name = "Введите имя";
-    if (!form.username.trim()) newErrors.username = "Введите имя пользователя";
-    if (!form.password.trim()) newErrors.password = "Введите пароль";
-    if (form.password.length > 0 && form.password.length < 6)
+    if (!form.username.trim()) {
+      newErrors.username = "Введите имя пользователя";
+    }
+    if (!form.password.trim()) {
+      newErrors.password = "Введите пароль";
+    }
+    if (form.password.length > 0 && form.password.length < 6) {
       newErrors.password = "Минимум 6 символов";
+    }
     return newErrors;
   }
 
@@ -60,14 +62,12 @@ export function AddUserDialog() {
       await createUser({
         username: form.username.trim(),
         password: form.password,
-        name: form.name.trim(),
         role: form.role,
-        email: form.email.trim() || undefined,
       });
       setOpen(false);
       toast.success("Пользователь создан");
     } catch {
-      toast.error("Не удалось создать пользователя");
+      // error already toasted by useServerAction
     } finally {
       setLoading(false);
     }
@@ -94,13 +94,6 @@ export function AddUserDialog() {
           <DialogTitle>Новый пользователь</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <Field
-            label="Отображаемое имя"
-            required
-            value={form.name}
-            onChange={(v) => handleChange("name", v)}
-            error={errors.name}
-          />
           <Field
             label="Имя пользователя"
             required
@@ -141,12 +134,6 @@ export function AddUserDialog() {
               </label>
             </div>
           </div>
-          <Field
-            label="Email (необязательно)"
-            type="email"
-            value={form.email}
-            onChange={(v) => handleChange("email", v)}
-          />
           <DialogFooter>
             <Button type="submit" disabled={loading}>
               {loading ? "Создание..." : "Создать"}

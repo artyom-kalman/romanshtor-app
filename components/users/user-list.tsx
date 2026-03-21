@@ -1,20 +1,27 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Trash2, Mail, Shield, User } from "lucide-react";
+import { Users, Trash2, Shield, User, Pencil } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useServerMutation } from "@/hooks/use-server-mutation";
+import { EditUserDialog } from "./edit-user-dialog";
 
 export function UserList() {
   const users = useQuery(api.users.list);
-  const deleteUser = useMutation(api.users.deleteUser);
+  const deleteUser = useServerMutation(api.users.deleteUser);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [editUser, setEditUser] = useState<{
+    _id: Id<"users">;
+    role?: string;
+    username?: string;
+  } | null>(null);
 
   if (users === undefined) {
     return (
@@ -39,7 +46,7 @@ export function UserList() {
       await deleteUser({ userId });
       toast.success("Пользователь удалён");
     } catch {
-      toast.error("Не удалось удалить пользователя");
+      // error already toasted by useServerMutation
     } finally {
       setDeletingId(null);
       setConfirmId(null);
@@ -52,7 +59,7 @@ export function UserList() {
         <Card key={user._id}>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>{user.name || "Без имени"}</span>
+              <span>{user.username}</span>
               <span className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
                 {user.role === "admin" ? (
                   <Shield className="size-3.5" />
@@ -64,15 +71,6 @@ export function UserList() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
-            {user.username && (
-              <div className="text-muted-foreground">@{user.username}</div>
-            )}
-            {user.email && (
-              <div className="flex items-center gap-2">
-                <Mail className="size-4 shrink-0 text-muted-foreground" />
-                <span>{user.email}</span>
-              </div>
-            )}
             <div className="mt-2">
               {confirmId === user._id ? (
                 <div className="flex gap-2">
@@ -93,20 +91,42 @@ export function UserList() {
                   </Button>
                 </div>
               ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground"
-                  onClick={() => setConfirmId(user._id)}
-                >
-                  <Trash2 className="size-4" />
-                  Удалить
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground"
+                    onClick={() => setEditUser(user)}
+                  >
+                    <Pencil className="size-4" />
+                    Изменить
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground"
+                    onClick={() => setConfirmId(user._id)}
+                  >
+                    <Trash2 className="size-4" />
+                    Удалить
+                  </Button>
+                </div>
               )}
             </div>
           </CardContent>
         </Card>
       ))}
+      {editUser && (
+        <EditUserDialog
+          user={editUser}
+          open={!!editUser}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditUser(null);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
