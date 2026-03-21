@@ -10,7 +10,8 @@ export function useServerMutation<M extends FunctionReference<"mutation">>(
     try {
       return await mutationFn(...args);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Произошла ошибка");
+      console.error(error);
+      toast.error("Произошла ошибка, попробуйте снова");
       throw error;
     }
   };
@@ -24,7 +25,8 @@ export function useServerAction<A extends FunctionReference<"action">>(
     try {
       return await actionFn(...args);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Произошла ошибка");
+      console.error(error);
+      toast.error("Произошла ошибка, попробуйте снова");
       throw error;
     }
   };
