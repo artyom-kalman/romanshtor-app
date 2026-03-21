@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAction } from "convex/react";
+import { useServerAction } from "@/hooks/use-server-mutation";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ export function AddUserDialog() {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const createUser = useAction(api.users.createUser);
+  const createUser = useServerAction(api.users.createUser);
 
   function handleChange(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -74,7 +74,7 @@ export function AddUserDialog() {
       setOpen(false);
       toast.success("Пользователь создан");
     } catch {
-      toast.error("Не удалось создать пользователя");
+      // error already toasted by useServerAction
     } finally {
       setLoading(false);
     }

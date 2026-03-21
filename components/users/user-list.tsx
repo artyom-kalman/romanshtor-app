@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,10 +9,11 @@ import { Users, Trash2, Mail, Shield, User } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useServerMutation } from "@/hooks/use-server-mutation";
 
 export function UserList() {
   const users = useQuery(api.users.list);
-  const deleteUser = useMutation(api.users.deleteUser);
+  const deleteUser = useServerMutation(api.users.deleteUser);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
@@ -39,7 +40,7 @@ export function UserList() {
       await deleteUser({ userId });
       toast.success("Пользователь удалён");
     } catch {
-      toast.error("Не удалось удалить пользователя");
+      // error already toasted by useServerMutation
     } finally {
       setDeletingId(null);
       setConfirmId(null);
