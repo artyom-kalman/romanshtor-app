@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useServerAction, useServerMutation } from "@/hooks/use-server-mutation";
+import { useServerAction } from "@/hooks/use-server-mutation";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
@@ -27,8 +27,7 @@ export function EditUserDialog({ user, open, onOpenChange }: EditUserDialogProps
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const updateUsername = useServerMutation(api.users.updateUsername);
-  const updatePassword = useServerAction(api.users.updatePassword);
+  const updateUser = useServerAction(api.users.updateUser);
 
   function validate() {
     const newErrors: Record<string, string> = {};
@@ -54,12 +53,11 @@ export function EditUserDialog({ user, open, onOpenChange }: EditUserDialogProps
 
     setLoading(true);
     try {
-      if (username.trim()) {
-        await updateUsername({ userId: user._id, newUsername: username.trim() });
-      }
-      if (password) {
-        await updatePassword({ userId: user._id, newPassword: password });
-      }
+      await updateUser({
+        userId: user._id,
+        newUsername: username.trim() || undefined,
+        newPassword: password || undefined,
+      });
       toast.success("Пользователь обновлён");
       onOpenChange(false);
     } catch {

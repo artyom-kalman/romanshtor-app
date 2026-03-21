@@ -160,10 +160,11 @@ export const deleteUser = mutation({
   },
 });
 
-export const updatePassword = action({
+export const updateUser = action({
   args: {
     userId: v.id("users"),
-    newPassword: v.string(),
+    newUsername: v.optional(v.string()),
+    newPassword: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const currentUser = await ctx.runQuery(api.users.currentUser);
@@ -177,11 +178,36 @@ export const updatePassword = action({
     if (!account) {
       throw new Error("Аккаунт не найден");
     }
+    const oldUsername = account.providerAccountId;
 
-    await modifyAccountCredentials(ctx, {
-      provider: "credentials",
-      account: { id: account.providerAccountId, secret: args.newPassword },
-    });
+    let usernameChanged = false;
+    if (args.newUsername) {
+      await ctx.runMutation(api.users.updateUsername, {
+        userId: args.userId,
+        newUsername: args.newUsername,
+      });
+      usernameChanged = true;
+    }
+
+    if (args.newPassword) {
+      try {
+        await modifyAccountCredentials(ctx, {
+          provider: "credentials",
+          account: {
+            id: args.newUsername ?? oldUsername,
+            secret: args.newPassword,
+          },
+        });
+      } catch (error) {
+        if (usernameChanged) {
+          await ctx.runMutation(api.users.updateUsername, {
+            userId: args.userId,
+            newUsername: oldUsername,
+          });
+        }
+        throw error;
+      }
+    }
   },
 });
 
