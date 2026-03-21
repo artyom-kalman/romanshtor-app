@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Trash2, Mail, Shield, User } from "lucide-react";
+import { Users, Trash2, Shield, User } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -67,12 +67,6 @@ export function UserList() {
           <CardContent className="flex flex-col gap-2 text-sm">
             {user.username && (
               <div className="text-muted-foreground">@{user.username}</div>
-            )}
-            {user.email && (
-              <div className="flex items-center gap-2">
-                <Mail className="size-4 shrink-0 text-muted-foreground" />
-                <span>{user.email}</span>
-              </div>
             )}
             <div className="mt-2">
               {confirmId === user._id ? (

@@ -32,7 +32,6 @@ export const currentUser = query({
     return {
       _id: user._id,
       name: user.name,
-      email: user.email,
       role: user.role,
       username: account?.providerAccountId,
     };
@@ -64,7 +63,6 @@ export const list = query({
         return {
           _id: u._id,
           name: u.name,
-          email: u.email,
           role: u.role,
           username: account?.providerAccountId,
         };
@@ -101,7 +99,6 @@ export const createUser = action({
     password: v.string(),
     name: v.string(),
     role: v.string(),
-    email: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const currentUser = await ctx.runQuery(api.users.currentUser);
@@ -115,9 +112,7 @@ export const createUser = action({
       profile: {
         name: args.name,
         role: args.role,
-        email: args.email,
       },
-      shouldLinkViaEmail: !!args.email,
     });
   },
 });

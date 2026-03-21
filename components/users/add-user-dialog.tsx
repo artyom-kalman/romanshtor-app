@@ -22,7 +22,6 @@ const initialForm = {
   password: "",
   name: "",
   role: "user" as "admin" | "user",
-  email: "",
 };
 
 export function AddUserDialog() {
@@ -69,7 +68,6 @@ export function AddUserDialog() {
         password: form.password,
         name: form.name.trim(),
         role: form.role,
-        email: form.email.trim() || undefined,
       });
       setOpen(false);
       toast.success("Пользователь создан");
@@ -148,12 +146,6 @@ export function AddUserDialog() {
               </label>
             </div>
           </div>
-          <Field
-            label="Email (необязательно)"
-            type="email"
-            value={form.email}
-            onChange={(v) => handleChange("email", v)}
-          />
           <DialogFooter>
             <Button type="submit" disabled={loading}>
               {loading ? "Создание..." : "Создать"}

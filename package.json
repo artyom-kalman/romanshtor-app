@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@auth/core": "0.37.4",
     "@convex-dev/auth": "^0.0.90",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-slot": "^1.2.4",
