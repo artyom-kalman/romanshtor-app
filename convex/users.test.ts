@@ -15,9 +15,11 @@ const modules: Record<string, () => Promise<any>> = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function seedAdmin(t: any) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userId = await t.run(async (ctx: any) => {
     return await ctx.db.insert("users", { role: "admin" });
   });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountId = await t.run(async (ctx: any) => {
     return await ctx.db.insert("authAccounts", {
       userId,
@@ -25,6 +27,7 @@ async function seedAdmin(t: any) {
       providerAccountId: "admin",
     });
   });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sessionId = await t.run(async (ctx: any) => {
     return await ctx.db.insert("authSessions", {
       userId,
@@ -37,9 +40,11 @@ async function seedAdmin(t: any) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function seedUser(t: any, username: string, role = "user") {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userId = await t.run(async (ctx: any) => {
     return await ctx.db.insert("users", { role });
   });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountId = await t.run(async (ctx: any) => {
     return await ctx.db.insert("authAccounts", {
       userId,
@@ -47,6 +52,7 @@ async function seedUser(t: any, username: string, role = "user") {
       providerAccountId: username,
     });
   });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sessionId = await t.run(async (ctx: any) => {
     return await ctx.db.insert("authSessions", {
       userId,
