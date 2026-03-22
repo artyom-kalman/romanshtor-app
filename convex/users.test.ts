@@ -1,15 +1,7 @@
 import { convexTest } from "convex-test";
 import { describe, expect, it } from "bun:test";
-import { Id } from "./_generated/dataModel";
 import schema from "./schema";
-import {
-  hasUsers,
-  currentUser,
-  list,
-  deleteUser,
-  updateUsername,
-  getAccountByUserId,
-} from "./users";
+import { api } from "./_generated/api";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const modules: Record<string, () => Promise<any>> = {
@@ -21,18 +13,19 @@ const modules: Record<string, () => Promise<any>> = {
   "./_generated/server.js": () => import("./_generated/server"),
 };
 
-async function seedAdmin(t: ReturnType<typeof convexTest>) {
-  const userId = await t.run(async (ctx) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function seedAdmin(t: any) {
+  const userId = await t.run(async (ctx: any) => {
     return await ctx.db.insert("users", { role: "admin" });
   });
-  const accountId = await t.run(async (ctx) => {
+  const accountId = await t.run(async (ctx: any) => {
     return await ctx.db.insert("authAccounts", {
       userId,
       provider: "credentials",
       providerAccountId: "admin",
     });
   });
-  const sessionId = await t.run(async (ctx) => {
+  const sessionId = await t.run(async (ctx: any) => {
     return await ctx.db.insert("authSessions", {
       userId,
       expirationTime: Date.now() + 1000 * 60 * 60,
@@ -42,22 +35,19 @@ async function seedAdmin(t: ReturnType<typeof convexTest>) {
   return { userId, accountId, sessionId, asAdmin };
 }
 
-async function seedUser(
-  t: ReturnType<typeof convexTest>,
-  username: string,
-  role = "user",
-) {
-  const userId = await t.run(async (ctx) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function seedUser(t: any, username: string, role = "user") {
+  const userId = await t.run(async (ctx: any) => {
     return await ctx.db.insert("users", { role });
   });
-  const accountId = await t.run(async (ctx) => {
+  const accountId = await t.run(async (ctx: any) => {
     return await ctx.db.insert("authAccounts", {
       userId,
       provider: "credentials",
       providerAccountId: username,
     });
   });
-  const sessionId = await t.run(async (ctx) => {
+  const sessionId = await t.run(async (ctx: any) => {
     return await ctx.db.insert("authSessions", {
       userId,
       expirationTime: Date.now() + 1000 * 60 * 60,
@@ -70,7 +60,7 @@ async function seedUser(
 describe("hasUsers", () => {
   it("returns false on empty DB", async () => {
     const t = convexTest(schema, modules);
-    expect(await t.query(hasUsers)).toBe(false);
+    expect(await t.query(api.users.hasUsers)).toBe(false);
   });
 
   it("returns true when a user exists", async () => {
@@ -78,20 +68,20 @@ describe("hasUsers", () => {
     await t.run(async (ctx) => {
       await ctx.db.insert("users", { role: "admin" });
     });
-    expect(await t.query(hasUsers)).toBe(true);
+    expect(await t.query(api.users.hasUsers)).toBe(true);
   });
 });
 
 describe("currentUser", () => {
   it("returns null when unauthenticated", async () => {
     const t = convexTest(schema, modules);
-    expect(await t.query(currentUser)).toBeNull();
+    expect(await t.query(api.users.currentUser)).toBeNull();
   });
 
   it("returns user data when authenticated", async () => {
     const t = convexTest(schema, modules);
     const { userId, asAdmin } = await seedAdmin(t);
-    const result = await asAdmin.query(currentUser);
+    const result = await asAdmin.query(api.users.currentUser);
     expect(result).toEqual({
       _id: userId,
       role: "admin",
@@ -103,13 +93,13 @@ describe("currentUser", () => {
 describe("list", () => {
   it("throws when unauthenticated", async () => {
     const t = convexTest(schema, modules);
-    await expect(t.query(list)).rejects.toThrow("Not authenticated");
+    await expect(t.query(api.users.list)).rejects.toThrow("Not authenticated");
   });
 
   it("throws when caller is not admin", async () => {
     const t = convexTest(schema, modules);
     const { asUser } = await seedUser(t, "worker", "user");
-    await expect(asUser.query(list)).rejects.toThrow(
+    await expect(asUser.query(api.users.list)).rejects.toThrow(
       "Только для администраторов",
     );
   });
@@ -118,7 +108,7 @@ describe("list", () => {
     const t = convexTest(schema, modules);
     const { asAdmin, userId: adminId } = await seedAdmin(t);
     const { userId: userId2 } = await seedUser(t, "worker", "user");
-    const result = await asAdmin.query(list);
+    const result = await asAdmin.query(api.users.list);
     expect(result).toHaveLength(2);
     expect(result).toEqual(
       expect.arrayContaining([
@@ -132,18 +122,18 @@ describe("list", () => {
 describe("deleteUser", () => {
   it("throws when unauthenticated", async () => {
     const t = convexTest(schema, modules);
-    const fakeId = "placeholder" as Id<"users">;
+    const { userId } = await seedUser(t, "target", "user");
     await expect(
-      t.mutation(deleteUser, { userId: fakeId }),
+      t.mutation(api.users.deleteUser, { userId }),
     ).rejects.toThrow("Not authenticated");
   });
 
   it("throws when caller is not admin", async () => {
     const t = convexTest(schema, modules);
     const { asUser } = await seedUser(t, "worker", "user");
-    const fakeId = "placeholder" as Id<"users">;
+    const { userId: targetId } = await seedUser(t, "target", "user");
     await expect(
-      asUser.mutation(deleteUser, { userId: fakeId }),
+      asUser.mutation(api.users.deleteUser, { userId: targetId }),
     ).rejects.toThrow("Только для администраторов");
   });
 
@@ -151,7 +141,7 @@ describe("deleteUser", () => {
     const t = convexTest(schema, modules);
     const { userId, asAdmin } = await seedAdmin(t);
     await expect(
-      asAdmin.mutation(deleteUser, { userId }),
+      asAdmin.mutation(api.users.deleteUser, { userId }),
     ).rejects.toThrow("Нельзя удалить самого себя");
   });
 
@@ -172,7 +162,7 @@ describe("deleteUser", () => {
       });
     });
 
-    await asAdmin.mutation(deleteUser, { userId: targetId });
+    await asAdmin.mutation(api.users.deleteUser, { userId: targetId });
 
     // Verify everything is gone
     const remaining = await t.run(async (ctx) => {
@@ -202,9 +192,9 @@ describe("deleteUser", () => {
 describe("updateUsername", () => {
   it("throws when unauthenticated", async () => {
     const t = convexTest(schema, modules);
-    const fakeId = "placeholder" as Id<"users">;
+    const { userId } = await seedUser(t, "target", "user");
     await expect(
-      t.mutation(updateUsername, { userId: fakeId, newUsername: "new" }),
+      t.mutation(api.users.updateUsername, { userId, newUsername: "new" }),
     ).rejects.toThrow("Not authenticated");
   });
 
@@ -212,7 +202,7 @@ describe("updateUsername", () => {
     const t = convexTest(schema, modules);
     const { asUser, userId } = await seedUser(t, "worker", "user");
     await expect(
-      asUser.mutation(updateUsername, { userId, newUsername: "new" }),
+      asUser.mutation(api.users.updateUsername, { userId, newUsername: "new" }),
     ).rejects.toThrow("Только для администраторов");
   });
 
@@ -221,7 +211,7 @@ describe("updateUsername", () => {
     const { asAdmin } = await seedAdmin(t);
     const { userId } = await seedUser(t, "worker", "user");
     await expect(
-      asAdmin.mutation(updateUsername, { userId, newUsername: "admin" }),
+      asAdmin.mutation(api.users.updateUsername, { userId, newUsername: "admin" }),
     ).rejects.toThrow("Пользователь с таким именем уже существует");
   });
 
@@ -230,7 +220,7 @@ describe("updateUsername", () => {
     const { asAdmin } = await seedAdmin(t);
     const { userId } = await seedUser(t, "oldname", "user");
 
-    await asAdmin.mutation(updateUsername, {
+    await asAdmin.mutation(api.users.updateUsername, {
       userId,
       newUsername: "newname",
     });
@@ -250,9 +240,9 @@ describe("updateUsername", () => {
 describe("getAccountByUserId", () => {
   it("throws when unauthenticated", async () => {
     const t = convexTest(schema, modules);
-    const fakeId = "placeholder" as Id<"users">;
+    const { userId } = await seedUser(t, "target", "user");
     await expect(
-      t.query(getAccountByUserId, { userId: fakeId }),
+      t.query(api.users.getAccountByUserId, { userId }),
     ).rejects.toThrow("Not authenticated");
   });
 
@@ -260,7 +250,7 @@ describe("getAccountByUserId", () => {
     const t = convexTest(schema, modules);
     const { asUser, userId } = await seedUser(t, "worker", "user");
     await expect(
-      asUser.query(getAccountByUserId, { userId }),
+      asUser.query(api.users.getAccountByUserId, { userId }),
     ).rejects.toThrow("Только для администраторов");
   });
 
@@ -271,7 +261,7 @@ describe("getAccountByUserId", () => {
     const noAccountUserId = await t.run(async (ctx) => {
       return await ctx.db.insert("users", { role: "user" });
     });
-    const result = await asAdmin.query(getAccountByUserId, {
+    const result = await asAdmin.query(api.users.getAccountByUserId, {
       userId: noAccountUserId,
     });
     expect(result).toBeNull();
@@ -281,7 +271,7 @@ describe("getAccountByUserId", () => {
     const t = convexTest(schema, modules);
     const { asAdmin } = await seedAdmin(t);
     const { userId } = await seedUser(t, "worker", "user");
-    const result = await asAdmin.query(getAccountByUserId, { userId });
+    const result = await asAdmin.query(api.users.getAccountByUserId, { userId });
     expect(result).toEqual({ providerAccountId: "worker" });
   });
 });
