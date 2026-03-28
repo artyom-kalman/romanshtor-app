@@ -33,6 +33,10 @@ function NewDocumentContent() {
       const id = await createMutation({ type: selectedType, title, fields });
       toast.success("Документ создан");
       router.push(`/documents/${id}`);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Не удалось создать документ",
+      );
     } finally {
       setIsSubmitting(false);
     }

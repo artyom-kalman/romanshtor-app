@@ -14,6 +14,7 @@ import { getTemplate, getTemplateLabel } from "@/lib/document-templates";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 function registerFonts() {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -101,11 +102,17 @@ export function PdfDownloadButton({
     try {
       const blob = await pdf(<DocumentPdf document={document} />).toBlob();
       const url = URL.createObjectURL(blob);
-      const a = window.document.createElement("a");
-      a.href = url;
-      a.download = `${getTemplateLabel(document.type)}_${document.number}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
+      try {
+        const a = window.document.createElement("a");
+        a.href = url;
+        a.download = `${getTemplateLabel(document.type)}_${document.number}.pdf`;
+        a.click();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      toast.error("Не удалось сгенерировать PDF");
     } finally {
       setLoading(false);
     }

@@ -17,15 +17,16 @@ export const list = query({
     if (args.type) {
       q = ctx.db
         .query("documents")
-        .withIndex("by_type", (q) => q.eq("type", args.type!));
+        .withIndex("by_type_isArchived", (q) =>
+          q.eq("type", args.type!).eq("isArchived", false),
+        );
     } else {
-      q = ctx.db.query("documents");
+      q = ctx.db
+        .query("documents")
+        .filter((q) => q.eq(q.field("isArchived"), false));
     }
 
-    const documents = await q
-      .filter((q) => q.neq(q.field("isArchived"), true))
-      .order("desc")
-      .collect();
+    const documents = await q.order("desc").collect();
     return documents.sort((a, b) => b.updatedAt - a.updatedAt);
   },
 });
@@ -73,6 +74,7 @@ export const create = mutation({
       fields: args.fields,
       createdBy: userId,
       updatedAt: Date.now(),
+      isArchived: false,
     });
   },
 });
@@ -92,6 +94,9 @@ export const update = mutation({
     const doc = await ctx.db.get(args.id);
     if (!doc) {
       throw new Error("Документ не найден");
+    }
+    if (doc.isArchived) {
+      throw new Error("Документ архивирован");
     }
 
     const updates: Record<string, unknown> = { updatedAt: Date.now() };

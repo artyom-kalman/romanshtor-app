@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
 
 interface DocumentFormProps {
@@ -44,6 +45,14 @@ export function DocumentForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    for (const field of template.fields) {
+      if (field.required && !fields[field.id]) {
+        toast.error(`Заполните поле «${field.label}»`);
+        const el = document.getElementById(field.id);
+        el?.focus();
+        return;
+      }
+    }
     onSubmit(fields);
   };
 

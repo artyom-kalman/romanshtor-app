@@ -27,12 +27,22 @@ export function DocumentActions({ documentId }: DocumentActionsProps) {
   const router = useRouter();
   const removeMutation = useServerMutation(api.documents.remove);
   const [open, setOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    await removeMutation({ id: documentId });
-    setOpen(false);
-    toast.success("Документ в архиве");
-    router.push("/documents");
+    setIsDeleting(true);
+    try {
+      await removeMutation({ id: documentId });
+      setOpen(false);
+      toast.success("Документ в архиве");
+      router.push("/documents");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Не удалось архивировать",
+      );
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -58,11 +68,11 @@ export function DocumentActions({ documentId }: DocumentActionsProps) {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={isDeleting}>
               Отмена
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              В архив
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? "Архивация..." : "В архив"}
             </Button>
           </DialogFooter>
         </DialogContent>

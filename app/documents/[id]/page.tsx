@@ -80,7 +80,7 @@ export default function DocumentViewPage() {
 
               <div className="mb-6 flex items-center gap-2">
                 <DocumentActions documentId={document._id} />
-                {!editing && (
+                {!editing && template && (
                   <Button
                     variant="outline"
                     size="sm"

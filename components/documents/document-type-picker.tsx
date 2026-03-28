@@ -17,6 +17,9 @@ export function DocumentTypePicker({ onSelect }: DocumentTypePickerProps) {
     <div className="grid gap-4 sm:grid-cols-3">
       {documentTemplates.map((template) => {
         const Icon = iconMap[template.icon];
+        if (!Icon && process.env.NODE_ENV === "development") {
+          console.warn(`Missing icon mapping for "${template.icon}"`);
+        }
         return (
           <Card
             key={template.type}

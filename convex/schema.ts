@@ -22,9 +22,10 @@ const schema = defineSchema({
     orderId: v.optional(v.string()),
     createdBy: v.id("users"),
     updatedAt: v.number(),
-    isArchived: v.optional(v.boolean()),
+    isArchived: v.boolean(),
   })
     .index("by_type", ["type"])
+    .index("by_type_isArchived", ["type", "isArchived"])
     .index("by_createdBy", ["createdBy"])
     .index("by_orderId", ["orderId"]),
 });
