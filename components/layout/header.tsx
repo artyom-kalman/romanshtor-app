@@ -19,6 +19,15 @@ export function Header() {
         <div className="flex items-center gap-6">
           <h1 className="text-lg font-semibold">Римские Шторы</h1>
           <nav className="flex items-center gap-1">
+            <Link
+              href="/documents"
+              className={cn(
+                "rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent",
+                pathname.startsWith("/documents") && "bg-accent",
+              )}
+            >
+              Документы
+            </Link>
             {currentUser?.role === "admin" && (
               <Link
                 href="/users"

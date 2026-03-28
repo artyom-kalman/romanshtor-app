@@ -14,6 +14,20 @@ const schema = defineSchema({
     role: v.optional(v.string()),
   })
     .index("phone", ["phone"]),
+  documents: defineTable({
+    type: v.string(),
+    title: v.string(),
+    number: v.string(),
+    fields: v.record(v.string(), v.string()),
+    orderId: v.optional(v.string()),
+    createdBy: v.id("users"),
+    updatedAt: v.number(),
+    isArchived: v.boolean(),
+  })
+    .index("by_type", ["type"])
+    .index("by_type_isArchived", ["type", "isArchived"])
+    .index("by_createdBy", ["createdBy"])
+    .index("by_orderId", ["orderId"]),
 });
 
 export default schema;
