@@ -46,7 +46,8 @@ export function DocumentForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     for (const field of template.fields) {
-      if (field.required && !fields[field.id]) {
+      const value = fields[field.id];
+      if (field.required && (!value || (typeof value === "string" && !value.trim()))) {
         toast.error(`Заполните поле «${field.label}»`);
         const el = document.getElementById(field.id);
         el?.focus();

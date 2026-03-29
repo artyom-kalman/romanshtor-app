@@ -47,15 +47,26 @@ export function DocumentActions({ documentId }: DocumentActionsProps) {
 
   return (
     <div className="flex gap-2">
-      <Button variant="outline" size="sm" asChild>
-        <Link href={`/documents/${documentId}/print`}>
+      <Button variant="outline" size="sm" disabled={isDeleting} asChild>
+        <Link
+          href={`/documents/${documentId}/print`}
+          aria-disabled={isDeleting}
+          className={isDeleting ? "pointer-events-none" : ""}
+        >
           <Printer className="mr-1 h-4 w-4" />
           Печать
         </Link>
       </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(v) => {
+          if (!isDeleting) {
+            setOpen(v);
+          }
+        }}
+      >
         <DialogTrigger asChild>
-          <Button variant="destructive" size="sm">
+          <Button variant="destructive" size="sm" disabled={isDeleting}>
             <Archive className="mr-1 h-4 w-4" />
             В архив
           </Button>

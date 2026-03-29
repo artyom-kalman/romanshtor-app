@@ -46,6 +46,9 @@ const styles = StyleSheet.create({
 
 function DocumentPdf({ document }: { document: Doc<"documents"> }) {
   const template = getTemplate(document.type);
+  if (!template) {
+    throw new Error(`Неизвестный тип документа: ${document.type}`);
+  }
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -62,7 +65,7 @@ function DocumentPdf({ document }: { document: Doc<"documents"> }) {
         <Text style={styles.date}>
           от {new Date(document._creationTime).toLocaleDateString("ru-RU")}
         </Text>
-        {template?.fields.map((field) => {
+        {template.fields.map((field) => {
           const value = document.fields[field.id];
           if (!value) {
             return null;
@@ -98,8 +101,8 @@ export function PdfDownloadButton({
 
   const handleDownload = async () => {
     setLoading(true);
-    registerFonts();
     try {
+      registerFonts();
       const blob = await pdf(<DocumentPdf document={document} />).toBlob();
       const url = URL.createObjectURL(blob);
       try {
